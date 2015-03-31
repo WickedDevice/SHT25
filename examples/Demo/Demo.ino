@@ -12,7 +12,7 @@ void setup(){
   sht25.begin();    
   
   uint8_t serial_number[8] = {0};
-  sht.getSerialNumber(serial_number);
+  sht25.getSerialNumber(serial_number);
   Serial.print("Serial Number: ");
   for(uint8_t ii = 0; ii < 8; ii++){
     if(serial_number[ii] < 0x10){
@@ -32,9 +32,9 @@ void setup(){
 
 void loop(){
   Serial.print("Temperature = ");
-  Serial.println(sht.getTemperature(), 2);
+  Serial.println(sht25.getTemperature(), 2);
   Serial.print("Humidity = ");
-  Serial.println(sht.getRelativeHumidity();
+  Serial.println(sht25.getRelativeHumidity(), 2);
   Serial.println("-----");
   delay(2000);
 }

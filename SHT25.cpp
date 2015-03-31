@@ -12,8 +12,8 @@ void SHT25::begin(uint8_t temperature_resolution_code){
 	setMeasurementResolution(temperature_resolution_code);
 }
 
-uint8_t SHT25::requestReadAndReceiveBytes(uint8_t buf, uint8_t num_bytes, boolean emit_stop){
-  Wire.requestFrom(SHT25_7_BIT_I2C_ADDRESS, num_bytes, emit_stop);
+boolean SHT25::requestReadAndReceiveBytes(uint8_t * buf, uint8_t num_bytes, boolean emit_stop){
+  Wire.requestFrom((int) SHT25_7_BIT_I2C_ADDRESS, (int) num_bytes, emit_stop ? 1 : 0);
   while(num_bytes > 0){
   
     if(Wire.available()){
@@ -119,7 +119,6 @@ void  SHT25::getSerialNumber(uint8_t * buf){
   Wire.endTransmission(false); // send + rep start
   
   // receive 6 bytes then stop
-  local_buf_idx = 0;
   requestReadAndReceiveBytes(local_buf, 6);
   
   uint8_t snc_1 = local_buf[0];
@@ -137,12 +136,11 @@ void  SHT25::getSerialNumber(uint8_t * buf){
   buf[7] = snc_0;
 }
 
-uint8_t SHT25::requestReadAndReceiveBytesgetUserData(boolean emit_stop){
+uint8_t SHT25::getUserData(boolean emit_stop){
   uint8_t user_data = 0;
   Wire.beginTransmission(SHT25_7_BIT_I2C_ADDRESS); // address the SHT25
   Wire.write(0xE7);                 // 0xE7 is the code for 'Read user register'
   Wire.endTransmission(false);      // xmit & send repeated start
-  Wire.requestFrom(SHT25_7_BIT_I2C_ADDRESS, 1, false);   
   
   // read 1 byte, then stop or repeat start
   requestReadAndReceiveBytes(&user_data, 1, emit_stop);
@@ -165,13 +163,13 @@ void SHT25::setMeasurementResolution(uint8_t temperature_resolution_code){
 
 // returns 1 if the crc8 of the data is equal to checksum
 // returns 0 otherwise
-boolean SHT25::checkCRC(uint8_t * data, uint8_t num_bytes, uin8_t checksum){
+boolean SHT25::checkCRC(uint8_t * data, uint8_t num_bytes, uint8_t checksum){
   uint8_t crc = 0;
   uint8_t byteCtr = 0;
   const uint16_t POLYNOMIAL = 0x131; //P(x)=x^8+x^5+x^4+1 = 100110001  
   
   //calculates 8-Bit checksum with given polynomial
-  for(byteCtr = 0; byteCtr < nbrOfBytes; ++byteCtr){ 
+  for(byteCtr = 0; byteCtr < num_bytes; ++byteCtr){ 
     crc ^= (data[byteCtr]);
     for(uint8_t bit = 8; bit > 0; --bit){ 
       if(crc & 0x80){

@@ -3,6 +3,12 @@
 #include <Wire.h>
 #include <stdint.h>
 
+#if ARDUINO >= 100
+  #include <Arduino.h>  // Arduino 1.0
+#else
+  #include <WProgram.h> // Arduino 0022
+#endif
+
 // this is the 7-bit I2C address
 #define SHT25_7_BIT_I2C_ADDRESS        0x40 
 
@@ -24,9 +30,9 @@ class SHT25{
     void  setMeasurementResolution(uint8_t temperature_resolution_code);   
     void softReset(void); 
   private:
-    boolean checkCRC(uint8_t * data, uint8_t num_bytes, uin8_t checksum);
+    boolean checkCRC(uint8_t * data, uint8_t num_bytes, uint8_t checksum);
     boolean getTempHumidityRequestCommon(uint8_t cmd, uint8_t * buf);
-    boolean requestReadAndReceiveBytes(uint8_t buf, uint8_t num_bytes, emit_stop = true);
-}
+    boolean requestReadAndReceiveBytes(uint8_t * buf, uint8_t num_bytes, boolean emit_stop = true);
+};
 
 #endif
