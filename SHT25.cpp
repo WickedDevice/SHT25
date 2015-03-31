@@ -38,8 +38,16 @@ boolean SHT25::getTempHumidityRequestCommon(uint8_t cmd, uint8_t * buf){
   // receive 3 bytes then stop
   requestReadAndReceiveBytes(buf, 3);
   
+  //Serial.print("Bytes: ");
+  //Serial.print(buf[0], HEX);
+  //Serial.print(", ");
+  //Serial.print(buf[1], HEX);
+  //Serial.print(", ");
+  //Serial.print(buf[2], HEX);
+  //Serial.println();
+  
   // do the crc calculation and see if it matches
-  if(checkCRC(buf, 2, buf[2])){
+  if(!checkCRC(buf, 2, buf[2])){
   	return false;
   }
 
@@ -149,9 +157,10 @@ uint8_t SHT25::getUserData(boolean emit_stop){
 
 void SHT25::setMeasurementResolution(uint8_t temperature_resolution_code){
   uint8_t user_data = getUserData(false);
+  
   if(temperature_resolution_code < 4){
     // resolution code goes in the top two bits of the user register
-    user_data &= ~0xC0; 
+    user_data &= 0x3F; 
     user_data |= (temperature_resolution_code << 6);    
   }
   
@@ -161,29 +170,28 @@ void SHT25::setMeasurementResolution(uint8_t temperature_resolution_code){
   Wire.endTransmission();       
 }
 
-// returns 1 if the crc8 of the data is equal to checksum
-// returns 0 otherwise
-boolean SHT25::checkCRC(uint8_t * data, uint8_t num_bytes, uint8_t checksum){
-  uint8_t crc = 0;
-  uint8_t byteCtr = 0;
-  const uint16_t POLYNOMIAL = 0x131; //P(x)=x^8+x^5+x^4+1 = 100110001  
-  
-  //calculates 8-Bit checksum with given polynomial
-  for(byteCtr = 0; byteCtr < num_bytes; ++byteCtr){ 
-    crc ^= (data[byteCtr]);
-    for(uint8_t bit = 8; bit > 0; --bit){ 
-      if(crc & 0x80){
-        crc = (crc << 1) ^ POLYNOMIAL;
-      }
-      else{
-        crc = (crc << 1);
-      }
+
+boolean SHT25::checkCRC(uint8_t * data, uint8_t nbrOfBytes, uint8_t checksum){
+    int crc = 0;
+    int byteCtr = 0;
+    const int POLYNOMIAL = 0x131;  //P(x)=x^8+x^5+x^4+1 = 100110001
+    //calculates 8-Bit checksum with given polynomial
+    for (byteCtr = 0; byteCtr < nbrOfBytes; ++byteCtr) {
+        crc ^= (data[byteCtr]);
+        for (int bit = 8; bit > 0; --bit) {
+            if (crc & 0x80) crc = (crc << 1) ^ POLYNOMIAL;
+            else crc = (crc << 1);
+        }
     }
-  }
-  
-  if (crc != checksum){
-    return false; 
-  }
-  
-  return true;
+
+    crc &= 0xff;    
+    
+    //Serial.print("Expected: ");
+    //Serial.print(checksum, HEX);
+    //Serial.print(", Calculated: ");
+    //Serial.print(crc, HEX);
+    //Serial.println();
+    
+    if (crc != checksum) return false;
+    else return true;
 }

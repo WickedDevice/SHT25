@@ -26,8 +26,8 @@ void setup(){
   sht25.setMeasurementResolution(SHT25_RESOLUTION_14BIT);
   Serial.println("done.");
   
-  Serial.print("User Register = ");
-  Serial.println(sht25.getUserData());  
+  Serial.print("User Register = 0x");
+  Serial.println(sht25.getUserData(), HEX);  
 }
 
 void loop(){
