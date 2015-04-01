@@ -6,23 +6,28 @@ SHT25::SHT25(){
   
 }
 
-void SHT25::begin(uint8_t temperature_resolution_code){
+boolean SHT25::begin(uint8_t temperature_resolution_code){
 	softReset();
 	delay(20);
-	setMeasurementResolution(temperature_resolution_code);
+	return setMeasurementResolution(temperature_resolution_code);
 }
 
 boolean SHT25::requestReadAndReceiveBytes(uint8_t * buf, uint8_t num_bytes, boolean emit_stop){
-  Wire.requestFrom((int) SHT25_7_BIT_I2C_ADDRESS, (int) num_bytes, emit_stop ? 1 : 0);
-  while(num_bytes > 0){
   
+  Wire.requestFrom((int) SHT25_7_BIT_I2C_ADDRESS, (int) num_bytes, emit_stop ? 1 : 0);
+  const long interval = 100; // maximum duration should be 85ms according to datasheet
+  unsigned long previousMillis = millis();  
+  while(num_bytes > 0){  
     if(Wire.available()){
       *buf++ = Wire.read();
       num_bytes--;
-    }
-    
-    // TODO: should timeout here and indicate an error
-    // after some period of time
+    }    
+    else if(millis() - previousMillis >= interval){ 
+      // this pattern is adapted from the blinkWithoutDelay example, which correctly handles roll-over
+      // if this condition is satisfied, it implies the interval has expired
+      // without receiving the number of bytes expected, so a timeout has happened
+      return false;
+    }    
   }  
   
   return true;
@@ -36,7 +41,9 @@ boolean SHT25::getTempHumidityRequestCommon(uint8_t cmd, uint8_t * buf){
   Wire.endTransmission(false); // send + rep start
   
   // receive 3 bytes then stop
-  requestReadAndReceiveBytes(buf, 3);
+  if(!requestReadAndReceiveBytes(buf, 3)){
+    return false;
+  }
   
   //Serial.print("Bytes: ");
   //Serial.print(buf[0], HEX);
@@ -155,8 +162,13 @@ uint8_t SHT25::getUserData(boolean emit_stop){
   return user_data;
 }
 
-void SHT25::setMeasurementResolution(uint8_t temperature_resolution_code){
+boolean SHT25::setMeasurementResolution(uint8_t temperature_resolution_code){
+  boolean ret = true;
   uint8_t user_data = getUserData(false);
+  if(user_data == 0){
+    // this is only ever the case if the sensor is absent
+    ret = false;
+  }
   
   if(temperature_resolution_code < 4){
     // resolution code goes in the top two bits of the user register
@@ -167,7 +179,9 @@ void SHT25::setMeasurementResolution(uint8_t temperature_resolution_code){
   Wire.beginTransmission(SHT25_7_BIT_I2C_ADDRESS); 
   Wire.write(0xE6);      // 0xE6 is the code for 'Write user register'
   Wire.write(user_data);              
-  Wire.endTransmission();       
+  Wire.endTransmission();     
+  
+  return ret; 
 }
 
 

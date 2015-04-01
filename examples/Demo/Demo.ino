@@ -9,7 +9,10 @@ void setup(){
   
   Serial.println("SHT25 Demo");
 
-  sht25.begin();    
+  if(!sht25.begin()){
+    Serial.println("SHT25 not found! Halting Program.");
+    for(;;);
+  }
   
   uint8_t serial_number[8] = {0};
   sht25.getSerialNumber(serial_number);

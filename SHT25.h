@@ -22,12 +22,12 @@
 class SHT25{
   public:
     SHT25();
-    void begin(uint8_t temperature_resolution_code = SHT25_RESOLUTION_14BIT);
+    boolean begin(uint8_t temperature_resolution_code = SHT25_RESOLUTION_14BIT);
     float getTemperature(void);
     float getRelativeHumidity(void);
     void  getSerialNumber(uint8_t * buf);
     uint8_t getUserData(boolean emit_stop = true);
-    void  setMeasurementResolution(uint8_t temperature_resolution_code);   
+    boolean setMeasurementResolution(uint8_t temperature_resolution_code);   
     void softReset(void); 
   private:
     boolean checkCRC(uint8_t * data, uint8_t num_bytes, uint8_t checksum);
