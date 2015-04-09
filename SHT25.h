@@ -23,8 +23,8 @@ class SHT25{
   public:
     SHT25();
     boolean begin(uint8_t temperature_resolution_code = SHT25_RESOLUTION_14BIT);
-    float getTemperature(void);
-    float getRelativeHumidity(void);
+    boolean getTemperature(float * result);
+    boolean getRelativeHumidity(float * result);
     void  getSerialNumber(uint8_t * buf);
     uint8_t getUserData(boolean emit_stop = true);
     boolean setMeasurementResolution(uint8_t temperature_resolution_code);   

@@ -61,7 +61,7 @@ boolean SHT25::getTempHumidityRequestCommon(uint8_t cmd, uint8_t * buf){
  	return true;
 }
 
-float SHT25::getTemperature(void){
+boolean SHT25::getTemperature(float * result){
   uint8_t buf[3] = {0};
   float temperature = 0.0f;
   // 0xE3 is the command for Trigger T Measurement, Hold Master
@@ -75,12 +75,14 @@ float SHT25::getTemperature(void){
  		temperature /= 65536.0;
  		temperature -= 46.85;
  		
+ 		*result = temperature; 		
+ 		return true;
   }
   
-  return temperature;
+  return false;
 }
 
-float SHT25::getRelativeHumidity(void){
+boolean SHT25::getRelativeHumidity(float * result){
   uint8_t buf[3] = {0};
   float humidity = 0.0f;
   // 0xE3 is the command for Trigger RH Measurement, Hold Master
@@ -93,9 +95,12 @@ float SHT25::getRelativeHumidity(void){
  		humidity = 125.0 * data;
  		humidity /= 65536.0;
  		humidity -= 6.0;
+ 		
+ 		*result = humidity;
+ 		return true;
   }
   
-  return humidity;
+  return false;
 }
 
 void SHT25::softReset(void){
